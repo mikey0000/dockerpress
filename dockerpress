@@ -74,8 +74,8 @@ def get_nginx_conf(container_id, url, http_port):
 
     return listen_str
 
-def create_docker_container(url):
-    command = ["docker run -d -t -p 80 -p 22 -h '" + url + "' --name '" + url + "' oskarhane/docker-wordpress-nginx-ssh"]
+def create_docker_container(url,containername):
+    command = ["docker run -d -t -p 80 -p 22 -h '" + url + "' --name '" + url + "' "+containername]
     p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
     output, err = p.communicate()
     container_id = output.decode("utf-8")
@@ -85,6 +85,7 @@ if __name__ == "__main__":
     usage = "usage: %prog [options]"
     parser = OptionParser(usage=usage)
     parser.add_option("--url", dest="url", help="URL to create a site for.")
+	parser.add_option("--container", dest="container", help="docker container name")
 
     options, args = parser.parse_args()
 
@@ -92,8 +93,12 @@ if __name__ == "__main__":
         parser.error("You must provide a URL to create a site for")
     if not (re.search('^([a-z0-9\.-]+\.[a-z]{2,4})$', options.url)):
         parser.error('The given url is not a valid domain')
+		
+		if not (options.url):
+			parser.error("You must provide a docker container name like oskarhane/docker-wordpress-nginx-ssh")
+		
     
-    container_id = create_docker_container(options.url)
+    container_id = create_docker_container(options.url,options.container)
     nginx_conf = create_nginx_config(container_id)
 
     if(nginx_conf == True):
